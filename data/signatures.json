@@ -1,0 +1,45 @@
+[
+{
+"name": "jQuery",
+"checks": [
+{"type":"global_var","value":"jQuery"},
+{"type":"script_src_regex","value":"jquery\\.|jquery-"},
+{"type":"meta_generator","value":"jQuery"}
+],
+"category":"javascript library"
+},
+{
+"name": "React",
+"checks": [
+{"type":"dom_attr_regex","value":"data-reactroot|data-reactid"},
+{"type":"global_var","value":"React"},
+{"type":"script_src_regex","value":"react\\.|react-dom"}
+],
+"category":"javascript framework"
+},
+{
+"name": "Angular",
+"checks": [
+{"type":"dom_attr_regex","value":"ng-|ng_"},
+{"type":"global_var","value":"angular"}
+],
+"category":"javascript framework"
+},
+{
+"name": "WordPress",
+"checks": [
+{"type":"meta_generator","value":"WordPress"},
+{"type":"script_src_regex","value":"wp-content|wp-includes"},
+{"type":"global_var","value":"wp"}
+],
+"category":"cms"
+},
+{
+"name": "Google Analytics (gtag.js)",
+"checks": [
+{"type":"script_src_regex","value":"gtag\\.js|analytics\\.js|ga\\.js"},
+{"type":"global_var","value":"ga"}
+],
+"category":"analytics"
+}
+]
