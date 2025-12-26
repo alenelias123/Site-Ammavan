@@ -1,9 +1,16 @@
 const scanBtn = document.getElementById('scanBtn');
 const status = document.getElementById('status');
 const resultsList = document.getElementById('results');
+const infraList = document.getElementById('infrastructure');
 const exportBtn = document.getElementById('exportBtn');
 let lastResults = [];
+let lastInfraInfo = null;
 let isScanning = false;
+
+const DEFAULT_INFRA_INFO = {
+  server: 'Unknown',
+  infrastructure: []
+};
 
 
 scanBtn.onclick = async () => {
@@ -14,13 +21,20 @@ return;
 isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
+infraList.innerHTML = '';
 
 let timeoutId = null;
 
 try {
 // fetch signatures from background
-const sigs = await new Promise(resolve => {
-chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatures || []));
+const sigs = await new Promise((resolve, reject) => {
+chrome.runtime.sendMessage({type: 'getSignatures'}, resp => {
+if (chrome.runtime.lastError) {
+reject(chrome.runtime.lastError.message);
+} else {
+resolve(resp?.signatures || []);
+}
+});
 });
 
 
@@ -64,6 +78,18 @@ const messageListener = (message, sender) => {
 if (message && message.type === 'DETECTION_RESULT' && sender.tab && sender.tab.id === tab.id) {
 lastResults = message.results || [];
 renderResults(lastResults);
+
+// Also fetch infrastructure info
+chrome.runtime.sendMessage({type: 'GET_SERVER_INFO', tabId: tab.id}, (infraInfo) => {
+if (chrome.runtime.lastError) {
+console.error('Error fetching infrastructure info:', chrome.runtime.lastError.message);
+lastInfraInfo = DEFAULT_INFRA_INFO;
+} else {
+lastInfraInfo = infraInfo || DEFAULT_INFRA_INFO;
+}
+renderInfrastructure(lastInfraInfo);
+});
+
 status.textContent = `Found ${lastResults.length} technology(ies)`;
 isScanning = false;
 chrome.runtime.onMessage.removeListener(messageListener);
@@ -118,6 +144,47 @@ function renderResults(results) {
   });
 }
 
+// Function to render infrastructure/hosting info in the UI
+function renderInfrastructure(infraInfo) {
+  infraList.innerHTML = '';
+  if (!infraInfo) {
+    const noInfoLi = document.createElement('li');
+    noInfoLi.textContent = 'No infrastructure detected.';
+    infraList.appendChild(noInfoLi);
+    return;
+  }
+  
+  // Display server info (using textContent to prevent XSS)
+  if (infraInfo.server && infraInfo.server !== 'Unknown') {
+    const serverLi = document.createElement('li');
+    const serverLabel = document.createElement('strong');
+    serverLabel.textContent = 'Server: ';
+    serverLi.appendChild(serverLabel);
+    serverLi.appendChild(document.createTextNode(infraInfo.server));
+    infraList.appendChild(serverLi);
+  }
+  
+  // Display infrastructure platforms (using textContent to prevent XSS)
+  if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+    infraInfo.infrastructure.forEach(platform => {
+      const li = document.createElement('li');
+      const platformLabel = document.createElement('strong');
+      platformLabel.textContent = 'Hosting/CDN: ';
+      li.appendChild(platformLabel);
+      li.appendChild(document.createTextNode(platform));
+      infraList.appendChild(li);
+    });
+  }
+  
+  // If nothing detected
+  if ((!infraInfo.server || infraInfo.server === 'Unknown') && 
+      (!infraInfo.infrastructure || infraInfo.infrastructure.length === 0)) {
+    const noDetectionLi = document.createElement('li');
+    noDetectionLi.textContent = 'No infrastructure detected.';
+    infraList.appendChild(noDetectionLi);
+  }
+}
+
 
 // Export button handler
 exportBtn.onclick = () => {
@@ -126,7 +193,12 @@ exportBtn.onclick = () => {
     return;
   }
   
-  const json = JSON.stringify(lastResults, null, 2);
+  const exportData = {
+    technologies: lastResults,
+    infrastructure: lastInfraInfo || DEFAULT_INFRA_INFO
+  };
+  
+  const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   
