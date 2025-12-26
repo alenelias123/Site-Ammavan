@@ -7,6 +7,11 @@ let lastResults = [];
 let lastInfraInfo = null;
 let isScanning = false;
 
+const DEFAULT_INFRA_INFO = {
+  server: 'Unknown',
+  infrastructure: []
+};
+
 
 scanBtn.onclick = async () => {
 if (isScanning) {
@@ -70,7 +75,12 @@ renderResults(lastResults);
 
 // Also fetch infrastructure info
 chrome.runtime.sendMessage({type: 'GET_SERVER_INFO', tabId: tab.id}, (infraInfo) => {
-lastInfraInfo = infraInfo || {server: 'Unknown', infrastructure: []};
+if (chrome.runtime.lastError) {
+console.error('Error fetching infrastructure info:', chrome.runtime.lastError);
+lastInfraInfo = DEFAULT_INFRA_INFO;
+} else {
+lastInfraInfo = infraInfo || DEFAULT_INFRA_INFO;
+}
 renderInfrastructure(lastInfraInfo);
 });
 
@@ -169,7 +179,7 @@ exportBtn.onclick = () => {
   
   const exportData = {
     technologies: lastResults,
-    infrastructure: lastInfraInfo || {server: 'Unknown', infrastructure: []}
+    infrastructure: lastInfraInfo || DEFAULT_INFRA_INFO
   };
   
   const json = JSON.stringify(exportData, null, 2);

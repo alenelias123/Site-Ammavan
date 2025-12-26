@@ -1,5 +1,10 @@
 const SERVER_HEADERS = ["server", "x-powered-by", "x-generator"];
 
+const DEFAULT_INFRA_INFO = {
+  server: "Unknown",
+  infrastructure: []
+};
+
 const INFRA_SIGNATURES = [
   { name: "Cloudflare", regex: /cloudflare/i },
   { name: "Akamai", regex: /akamai/i },
@@ -54,10 +59,7 @@ chrome.webRequest.onHeadersReceived.addListener(
     }
 
     // Get existing cache or create new entry
-    const existing = tabScanCache[details.tabId] || {
-      server: "Unknown",
-      infrastructure: []
-    };
+    const existing = tabScanCache[details.tabId] || DEFAULT_INFRA_INFO;
 
     // Update server if we found one and don't have one yet
     if (server && existing.server === "Unknown") {
@@ -78,10 +80,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "GET_SERVER_INFO") {
-    sendResponse(tabScanCache[msg.tabId] || {
-      server: "Unknown",
-      infrastructure: []
-    });
+    sendResponse(tabScanCache[msg.tabId] || DEFAULT_INFRA_INFO);
   } else if (msg.type === "getSignatures") {
     fetch(chrome.runtime.getURL("data/signatures.json"))
       .then(r => r.json())
