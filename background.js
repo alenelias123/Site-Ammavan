@@ -53,9 +53,23 @@ chrome.webRequest.onHeadersReceived.addListener(
       }
     }
 
+    // Get existing cache or create new entry
+    const existing = tabScanCache[details.tabId] || {
+      server: "Unknown",
+      infrastructure: []
+    };
+
+    // Update server if we found one and don't have one yet
+    if (server && existing.server === "Unknown") {
+      existing.server = server;
+    }
+
+    // Merge infrastructure detections (accumulate across requests)
+    const mergedInfra = new Set([...existing.infrastructure, ...Array.from(infra)]);
+    
     tabScanCache[details.tabId] = {
-      server: server || "Unknown",
-      infrastructure: Array.from(infra)
+      server: existing.server,
+      infrastructure: Array.from(mergedInfra)
     };
   },
   { urls: ["<all_urls>"] },
@@ -78,4 +92,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
     return true; // Keep channel open for async response
   }
+});
+
+// Clean up cache when tabs are closed to prevent memory leaks
+chrome.tabs.onRemoved.addListener((tabId) => {
+  delete tabScanCache[tabId];
 });

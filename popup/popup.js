@@ -16,6 +16,7 @@ return;
 isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
+infraList.innerHTML = '';
 
 let timeoutId = null;
 
