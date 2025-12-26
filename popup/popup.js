@@ -30,7 +30,7 @@ try {
 const sigs = await new Promise((resolve, reject) => {
 chrome.runtime.sendMessage({type: 'getSignatures'}, resp => {
 if (chrome.runtime.lastError) {
-reject(chrome.runtime.lastError);
+reject(chrome.runtime.lastError.message);
 } else {
 resolve(resp?.signatures || []);
 }
@@ -148,7 +148,9 @@ function renderResults(results) {
 function renderInfrastructure(infraInfo) {
   infraList.innerHTML = '';
   if (!infraInfo) {
-    infraList.innerHTML = '<li>No infrastructure detected.</li>';
+    const noInfoLi = document.createElement('li');
+    noInfoLi.textContent = 'No infrastructure detected.';
+    infraList.appendChild(noInfoLi);
     return;
   }
   
@@ -177,7 +179,9 @@ function renderInfrastructure(infraInfo) {
   // If nothing detected
   if ((!infraInfo.server || infraInfo.server === 'Unknown') && 
       (!infraInfo.infrastructure || infraInfo.infrastructure.length === 0)) {
-    infraList.innerHTML = '<li>No infrastructure detected.</li>';
+    const noDetectionLi = document.createElement('li');
+    noDetectionLi.textContent = 'No infrastructure detected.';
+    infraList.appendChild(noDetectionLi);
   }
 }
 
