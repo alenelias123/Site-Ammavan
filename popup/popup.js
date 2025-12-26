@@ -15,7 +15,7 @@ isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
 
-
+try {
 // fetch signatures from background
 const sigs = await new Promise(resolve => {
 chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatures || []));
@@ -89,6 +89,11 @@ chrome.runtime.onMessage.removeListener(messageListener);
 }
 }, 10000); // 10 second timeout
 
+} catch (error) {
+console.error('Scan error:', error);
+status.textContent = 'Error during scan - please try again';
+isScanning = false;
+}
 
 };
 

@@ -1,8 +1,14 @@
 chrome.runtime.onInstalled.addListener(async () => {
 // Load default signatures
+try {
 const resp = await fetch(chrome.runtime.getURL('data/signatures.json'));
 const sigs = await resp.json();
 chrome.storage.local.set({signatures: sigs});
+} catch (error) {
+console.error('Failed to load signatures:', error);
+// Set empty array as fallback
+chrome.storage.local.set({signatures: []});
+}
 });
 
 
