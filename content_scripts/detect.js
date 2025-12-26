@@ -1,16 +1,27 @@
 (function() {
+
+//getting all <script> and maps it to the respective srcs
+
 function getScriptSrcs() {
 return Array.from(document.scripts || []).map(s => s.src || '').filter(Boolean);
 }
+
+//gets meta="generator" tags and maps to their contents
 function getMetaGenerators() {
 return Array.from(document.querySelectorAll('meta[name="generator"]')).map(m => m.content || '');
 }
+
+//to get whole freaking html
 function getHTML() {
 return document.documentElement ? document.documentElement.outerHTML : document.body.innerHTML;
 }
+
+//checks global variables to get info on frameworks that use global variabless
 function hasGlobalVar(name) {
 try { return !!(window[name]); } catch(e) { return false; }
 }
+
+//regular expression checking on whole html file
 function hasDomAttrRegex(reStr) {
 try {
 const re = new RegExp(reStr, 'i');
