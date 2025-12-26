@@ -82,7 +82,7 @@ renderResults(lastResults);
 // Also fetch infrastructure info
 chrome.runtime.sendMessage({type: 'GET_SERVER_INFO', tabId: tab.id}, (infraInfo) => {
 if (chrome.runtime.lastError) {
-console.error('Error fetching infrastructure info:', chrome.runtime.lastError);
+console.error('Error fetching infrastructure info:', chrome.runtime.lastError.message);
 lastInfraInfo = DEFAULT_INFRA_INFO;
 } else {
 lastInfraInfo = infraInfo || DEFAULT_INFRA_INFO;
