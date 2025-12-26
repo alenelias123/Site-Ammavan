@@ -6,7 +6,13 @@ const INFRA_SIGNATURES = [
   { name: "Fastly", regex: /fastly/i },
   { name: "Vercel", regex: /vercel/i },
   { name: "Netlify", regex: /netlify/i },
-  { name: "AWS", regex: /amazon|aws/i }
+  { name: "AWS", regex: /amazon|aws/i },
+  { name: "Google Cloud", regex: /gcp|google/i },
+  { name: "Azure", regex: /azure|microsoft/i },
+  { name: "Heroku", regex: /heroku/i },
+  { name: "DigitalOcean", regex: /digitalocean/i },
+  { name: "GitHub Pages", regex: /github\.io|pages\.github/i },
+  { name: "Firebase", regex: /firebase/i }
 ];
 
 const tabScanCache = {};
@@ -25,10 +31,25 @@ chrome.webRequest.onHeadersReceived.addListener(
         server = value;
       }
 
+      // Check both header names and values for infrastructure signatures
       for (const sig of INFRA_SIGNATURES) {
-        if (sig.regex.test(value)) {
+        if (sig.regex.test(value) || sig.regex.test(name)) {
           infra.add(sig.name);
         }
+      }
+      
+      // Additional specific header checks for better detection
+      if (name.includes('cf-') || name === 'cf-ray') {
+        infra.add('Cloudflare');
+      }
+      if (name.includes('x-vercel-') || name === 'x-vercel-id') {
+        infra.add('Vercel');
+      }
+      if (name.includes('x-nf-') || name === 'x-nf-request-id') {
+        infra.add('Netlify');
+      }
+      if (name.includes('x-amz-') || name === 'x-amz-cf-id') {
+        infra.add('AWS');
       }
     }
 

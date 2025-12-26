@@ -1,8 +1,10 @@
 const scanBtn = document.getElementById('scanBtn');
 const status = document.getElementById('status');
 const resultsList = document.getElementById('results');
+const infraList = document.getElementById('infrastructure');
 const exportBtn = document.getElementById('exportBtn');
 let lastResults = [];
+let lastInfraInfo = null;
 let isScanning = false;
 
 
@@ -64,6 +66,13 @@ const messageListener = (message, sender) => {
 if (message && message.type === 'DETECTION_RESULT' && sender.tab && sender.tab.id === tab.id) {
 lastResults = message.results || [];
 renderResults(lastResults);
+
+// Also fetch infrastructure info
+chrome.runtime.sendMessage({type: 'GET_SERVER_INFO', tabId: tab.id}, (infraInfo) => {
+lastInfraInfo = infraInfo || {server: 'Unknown', infrastructure: []};
+renderInfrastructure(lastInfraInfo);
+});
+
 status.textContent = `Found ${lastResults.length} technology(ies)`;
 isScanning = false;
 chrome.runtime.onMessage.removeListener(messageListener);
@@ -118,6 +127,37 @@ function renderResults(results) {
   });
 }
 
+// Function to render infrastructure/hosting info in the UI
+function renderInfrastructure(infraInfo) {
+  infraList.innerHTML = '';
+  if (!infraInfo) {
+    infraList.innerHTML = '<li>No infrastructure detected.</li>';
+    return;
+  }
+  
+  // Display server info
+  if (infraInfo.server && infraInfo.server !== 'Unknown') {
+    const serverLi = document.createElement('li');
+    serverLi.innerHTML = `<strong>Server:</strong> ${infraInfo.server}`;
+    infraList.appendChild(serverLi);
+  }
+  
+  // Display infrastructure platforms
+  if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+    infraInfo.infrastructure.forEach(platform => {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>Hosting/CDN:</strong> ${platform}`;
+      infraList.appendChild(li);
+    });
+  }
+  
+  // If nothing detected
+  if ((!infraInfo.server || infraInfo.server === 'Unknown') && 
+      (!infraInfo.infrastructure || infraInfo.infrastructure.length === 0)) {
+    infraList.innerHTML = '<li>No infrastructure detected.</li>';
+  }
+}
+
 
 // Export button handler
 exportBtn.onclick = () => {
@@ -126,7 +166,12 @@ exportBtn.onclick = () => {
     return;
   }
   
-  const json = JSON.stringify(lastResults, null, 2);
+  const exportData = {
+    technologies: lastResults,
+    infrastructure: lastInfraInfo || {server: 'Unknown', infrastructure: []}
+  };
+  
+  const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   
