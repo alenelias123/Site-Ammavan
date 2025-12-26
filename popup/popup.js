@@ -327,6 +327,15 @@ function renderFindings(findings) {
 }
 
 
+// Helper function to calculate security rating
+function getSecurityRating(infraInfo) {
+  if (!infraInfo?.securityHeaders) return "🤷 Unknown";
+  const secureCount = Object.values(infraInfo.securityHeaders).filter(Boolean).length;
+  if (secureCount >= 3) return "😎 Not bad";
+  if (secureCount >= 1) return "😐 Could be worse";
+  return "😬 Yikes";
+}
+
 // Export button handler
 exportBtn.onclick = () => {
   if (!lastResults || lastResults.length === 0) {
@@ -345,10 +354,7 @@ exportBtn.onclick = () => {
     infrastructure: lastInfraInfo || DEFAULT_INFRA_INFO,
     gossip_level: findings.length > 5 ? "Maximum" : findings.length > 3 ? "High" : "Moderate",
     ammavan_rating: {
-      security: lastInfraInfo?.securityHeaders ? 
-        (Object.values(lastInfraInfo.securityHeaders).filter(Boolean).length >= 3 ? "😎 Not bad" : 
-         Object.values(lastInfraInfo.securityHeaders).filter(Boolean).length >= 1 ? "😐 Could be worse" : 
-         "😬 Yikes") : "🤷 Unknown",
+      security: getSecurityRating(lastInfraInfo),
       modernity: lastResults.some(t => ['React', 'Vue', 'Angular'].includes(t.name)) ? 
         "🚀 Living in 2024" : 
         lastResults.some(t => t.name === 'jQuery') ? 
