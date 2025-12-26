@@ -1,22 +1,26 @@
 (() => {
-  /* ------------------ Helpers ------------------ */
+  "use strict";
+
+  /* ================== HELPERS ================== */
 
   function getScriptSrcs() {
-    return Array.from(document.scripts || [])
-      .map(s => s.src || "")
-      .filter(Boolean);
+    try {
+      return Array.from(document.scripts || [])
+        .map(s => s.src || "")
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
   }
 
   function getMetaGenerators() {
-    return Array.from(
-      document.querySelectorAll('meta[name="generator"]')
-    ).map(m => m.content || "");
-  }
-
-  function getHTML() {
-    return document.documentElement
-      ? document.documentElement.outerHTML
-      : "";
+    try {
+      return Array.from(
+        document.querySelectorAll('meta[name="generator"]')
+      ).map(m => m.content || "");
+    } catch {
+      return [];
+    }
   }
 
   function hasGlobalVar(name) {
@@ -27,50 +31,58 @@
     }
   }
 
+  // IMPORTANT: only scan real DOM attributes
   function hasDomAttrRegex(reStr) {
     try {
       const re = new RegExp(reStr, "i");
-      return re.test(getHTML());
+      const elements = document.querySelectorAll("*");
+
+      for (const el of elements) {
+        for (const attr of el.getAttributeNames()) {
+          if (re.test(attr)) return true;
+        }
+      }
+      return false;
     } catch {
       return false;
     }
   }
 
-  /* ------------------ Core Detection ------------------ */
+  /* ================== CORE DETECTION ================== */
 
-  function detectTechnology(sig, scriptSrcs, metas) {
+  function detectTech(sig, scriptSrcs, metas) {
     let score = 0;
-    let matchedChecks = 0;
+    let matched = false;
 
     for (const check of sig.checks || []) {
-      let matched = false;
+      let hit = false;
 
       if (check.type === "script_src_regex") {
         const re = new RegExp(check.value, "i");
-        matched = scriptSrcs.some(src => re.test(src));
+        hit = scriptSrcs.some(src => re.test(src));
       }
 
       else if (check.type === "meta_generator") {
-        matched = metas.some(m =>
+        hit = metas.some(m =>
           m.toLowerCase().includes(check.value.toLowerCase())
         );
       }
 
       else if (check.type === "global_var") {
-        matched = hasGlobalVar(check.value);
+        hit = hasGlobalVar(check.value);
       }
 
       else if (check.type === "dom_attr_regex") {
-        matched = hasDomAttrRegex(check.value);
+        hit = hasDomAttrRegex(check.value);
       }
 
-      if (matched) {
-        matchedChecks++;
-        score += check.weight || 0.25; // default weight
+      if (hit) {
+        matched = true;
+        score += check.weight ?? 0.25;
       }
     }
 
-    if (matchedChecks === 0) return null;
+    if (!matched) return null;
 
     if (score > 1) score = 1;
 
@@ -81,7 +93,7 @@
     };
   }
 
-  /* ------------------ Event Listener ------------------ */
+  /* ================== EVENT LISTENER ================== */
 
   window.addEventListener("SiteTechInspect", event => {
     const signatures = event.detail?.signatures || [];
@@ -89,12 +101,33 @@
     const scriptSrcs = getScriptSrcs();
     const metas = getMetaGenerators();
 
-    const results = [];
+    let results = [];
 
     for (const sig of signatures) {
-      const detected = detectTechnology(sig, scriptSrcs, metas);
+      const detected = detectTech(sig, scriptSrcs, metas);
       if (detected) results.push(detected);
     }
+
+    /* ================== FRAMEWORK PRECEDENCE ================== */
+
+    const FRAMEWORK_PRIORITY = ["React", "Angular", "Vue", "Svelte"];
+
+    results.sort((a, b) => {
+      const pa = FRAMEWORK_PRIORITY.indexOf(a.name);
+      const pb = FRAMEWORK_PRIORITY.indexOf(b.name);
+      if (pa === -1 || pb === -1) return 0;
+      return pa - pb;
+    });
+
+    // Remove Angular if React confidence is higher
+    const react = results.find(r => r.name === "React");
+    const angular = results.find(r => r.name === "Angular");
+
+    if (react && angular && react.confidence >= angular.confidence) {
+      results = results.filter(r => r.name !== "Angular");
+    }
+
+    /* ================== DISPATCH RESULT ================== */
 
     window.dispatchEvent(
       new CustomEvent("SiteTechInspectResult", {

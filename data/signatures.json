@@ -11,25 +11,45 @@
 
 
 {
-"name": "React",
-"checks": [
-{"type":"dom_attr_regex","value":"data-reactroot|data-reactid","weight":0.3},
-{"type":"global_var","value":"React","weight":0.4},                                     
-{"type":"script_src_regex","value":"react\\.|react-dom","weight":0.3}
-],
-"category":"javascript framework"
+  "name": "React",
+  "checks": [
+    {
+      "type": "dom_attr_regex",
+      "value": "data-reactroot|data-reactid",
+      "weight": 0.4
+    },
+    {
+      "type": "script_src_regex",
+      "value": "react\\.|react-dom",
+      "weight": 0.4
+    },
+    {
+      "type": "global_var",
+      "value": "__REACT_DEVTOOLS_GLOBAL_HOOK__",
+      "weight": 0.2
+    }
+  ],
+  "category": "javascript framework"
 },
 
 
 {
-"name": "Angular",
-"checks": [
-{"type":"dom_attr_regex","value":"ng-|ng_","weight":0.2},                           
-{"type":"script_src_regex","value":"angular\\.js|angular-","weight":0.3},                        
-{"type":"global_var","value":"angular","weight":0.5}
-],
-"category":"javascript framework"
+  "name": "Angular",
+  "checks": [
+    {
+      "type": "dom_attr_regex",
+      "value": "\\[ng[A-Za-z]+\\]|\\*ng[A-Za-z]+",
+      "weight": 0.6
+    },
+    {
+      "type": "global_var",
+      "value": "ng",
+      "weight": 0.4
+    }
+  ],
+  "category": "javascript framework"
 },
+
 
 
 {
