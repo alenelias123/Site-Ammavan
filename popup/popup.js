@@ -39,13 +39,16 @@ args: [sigs]
 
 
 // wait for result from page by listening in the extension (we inject a one-time listener)
-// We'll inject a script that listens and then uses window.postMessage to send to extension
+// We'll inject a script that listens and then uses chrome.runtime.sendMessage to send to extension
 await chrome.scripting.executeScript({
 target: {tabId: tab.id},
 func: () => {
 const relHandler = (ev) => {
-// send the results to the extension via window.postMessage
-window.postMessage({source: 'siteTechInspector', results: ev.detail.results}, '*');
+// send the results to the extension via chrome.runtime.sendMessage
+chrome.runtime.sendMessage({
+type: 'DETECTION_RESULT',
+results: ev.detail.results
+});
 window.removeEventListener('SiteTechInspectResult', relHandler);
 };
 window.addEventListener('SiteTechInspectResult', relHandler);
@@ -53,20 +56,17 @@ window.addEventListener('SiteTechInspectResult', relHandler);
 });
 
 
-// listen for message from the page
-function pageMessageHandler(ev) {
-if (ev.source !== window) return; // only same-window
-const data = ev.data;
-if (data && data.source === 'siteTechInspector') {
-lastResults = data.results || [];
+// listen for message from the content script
+const messageListener = (message) => {
+if (message && message.type === 'DETECTION_RESULT') {
+lastResults = message.results || [];
 renderResults(lastResults);
 status.textContent = `Found ${lastResults.length} technology(ies)`;
-window.removeEventListener('message', pageMessageHandler);
+chrome.runtime.onMessage.removeListener(messageListener);
 }
-}
+};
 
-
-window.addEventListener('message', pageMessageHandler);
+chrome.runtime.onMessage.addListener(messageListener);
 
 
 };
