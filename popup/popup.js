@@ -57,13 +57,16 @@ window.addEventListener('SiteTechInspectResult', relHandler);
 
 
 // listen for message from the content script
-const messageListener = (message) => {
-if (message && message.type === 'DETECTION_RESULT') {
+let timeoutId;
+const messageListener = (message, sender) => {
+// Validate sender to ensure message comes from the expected tab
+if (message && message.type === 'DETECTION_RESULT' && sender.tab && sender.tab.id === tab.id) {
 lastResults = message.results || [];
 renderResults(lastResults);
 status.textContent = `Found ${lastResults.length} technology(ies)`;
 isScanning = false;
 chrome.runtime.onMessage.removeListener(messageListener);
+if (timeoutId) clearTimeout(timeoutId);
 }
 };
 
@@ -81,7 +84,7 @@ args: [sigs]
 
 
 // Set a timeout in case the scan never completes
-setTimeout(() => {
+timeoutId = setTimeout(() => {
 if (isScanning) {
 status.textContent = 'Scan timeout - please try again';
 isScanning = false;
@@ -93,6 +96,8 @@ chrome.runtime.onMessage.removeListener(messageListener);
 console.error('Scan error:', error);
 status.textContent = 'Error during scan - please try again';
 isScanning = false;
+chrome.runtime.onMessage.removeListener(messageListener);
+if (timeoutId) clearTimeout(timeoutId);
 }
 
 };
