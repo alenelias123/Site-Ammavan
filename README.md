@@ -4,6 +4,17 @@ A Chrome extension that detects technologies, frameworks, and infrastructure use
 
 ## Features
 
+### Ammavan Verdict ✨ NEW
+Get a witty, one-line judgment about the website you're scanning. The neighbourhood Ammavan always has an opinion!
+- **Examples**: "Modern React site hiding behind Cloudflare. Decently secured." or "Old-school jQuery site. Security needs work."
+
+### Ammavan Findings ✨ NEW
+Discover non-obvious insights about the site's technology and security:
+- Technology observations (e.g., "Site uses React (probably over-engineered for what it does)")
+- Security findings (e.g., "No CSP header (risky - XSS attacks welcome)")
+- Infrastructure insights (e.g., "Hides server using Cloudflare (smart move)")
+- Privacy notices (e.g., "Google Analytics present (your data is being collected)")
+
 ### Technology Detection
 Automatically detects common web technologies including:
 - JavaScript frameworks (React, Angular, Vue, Svelte)
@@ -11,15 +22,22 @@ Automatically detects common web technologies including:
 - Content Management Systems (WordPress)
 - Analytics tools (Google Analytics)
 
-### Infrastructure Detection ✨ NEW
+### Infrastructure Detection ✨ ENHANCED
 Identifies hosting providers and infrastructure services through HTTP header analysis:
 - **CDN Providers**: Cloudflare, Akamai, Fastly
 - **Cloud Platforms**: AWS, Google Cloud, Azure
 - **PaaS Providers**: Vercel, Netlify, Heroku
 - **Other Services**: GitHub Pages, Firebase, DigitalOcean
 
+### Security Analysis ✨ NEW
+Detects important security headers to assess website security posture:
+- **Content Security Policy (CSP)**: Protection against XSS attacks
+- **X-Frame-Options**: Clickjacking protection
+- **Strict-Transport-Security (HSTS)**: Forces HTTPS connections
+- **X-Content-Type-Options**: Prevents MIME type sniffing
+
 ### Export Functionality
-Export detected technologies and infrastructure information as JSON for further analysis.
+Export detected technologies, infrastructure, security analysis, and "Ammavan gossip" as JSON with satirical commentary!
 
 ## Installation
 
@@ -39,8 +57,12 @@ Export detected technologies and infrastructure information as JSON for further 
 1. Navigate to any website
 2. Click the Site Ammavan extension icon in your toolbar
 3. Click "Scan page" button
-4. View detected technologies and infrastructure
-5. (Optional) Click "Export JSON" to save results
+4. View:
+   - **Ammavan Verdict**: A witty one-line summary
+   - **Ammavan Findings**: Non-obvious tech and security insights
+   - **Technologies**: Detected frameworks and libraries
+   - **Infrastructure**: Hosting providers and servers
+5. (Optional) Click "Export JSON" to save the full "gossip report"
 
 ## How It Works
 
@@ -112,6 +134,29 @@ Edit `background.js` to add new infrastructure detection patterns:
 const INFRA_SIGNATURES = [
   { name: "Provider Name", regex: /pattern/i }
 ];
+```
+
+### Export Format
+The extension exports a comprehensive "Ammavan Gossip Report" with satirical commentary:
+```json
+{
+  "ammavan_says": "☕ Well well well, look what we have here...",
+  "verdict": "Modern React site hiding behind Cloudflare. Decently secured.",
+  "findings": [
+    "Site uses React (probably over-engineered for what it does)",
+    "Hides server using Cloudflare (smart move)",
+    "No CSP header (risky - XSS attacks welcome)"
+  ],
+  "technologies": [...],
+  "infrastructure": {...},
+  "gossip_level": "High",
+  "ammavan_rating": {
+    "security": "😐 Could be worse",
+    "modernity": "🚀 Living in 2024",
+    "privacy": "👀 They're watching"
+  },
+  "disclaimer": "This report is brought to you by your friendly neighbourhood Ammavan..."
+}
 ```
 
 ## Testing
