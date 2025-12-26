@@ -15,7 +15,7 @@ isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
 
-let timeoutId;
+let timeoutId = null;
 
 try {
 // fetch signatures from background

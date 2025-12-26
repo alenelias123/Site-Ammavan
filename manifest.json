@@ -30,11 +30,5 @@
 },
 "content_security_policy": {
 "extension_pages": "script-src 'self'"
-},
-"web_accessible_resources": [
-{
-  "resources": ["data/signatures.json"],
-  "matches": ["<all_urls>"]
 }
-]
 }
