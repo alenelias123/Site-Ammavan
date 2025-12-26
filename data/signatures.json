@@ -2,9 +2,9 @@
 {
 "name": "jQuery",
 "checks": [
-{"type":"global_var","value":"jQuery"},
-{"type":"script_src_regex","value":"jquery\\.|jquery-"},                      
-{"type":"meta_generator","value":"jQuery"}
+{"type":"global_var","value":"jQuery","weight":0.5},
+{"type":"script_src_regex","value":"jquery\\.|jquery-","weight":0.3},                      
+{"type":"meta_generator","value":"jQuery","weight":0.2}
 ],
 "category":"javascript library"
 },
@@ -13,9 +13,9 @@
 {
 "name": "React",
 "checks": [
-{"type":"dom_attr_regex","value":"data-reactroot|data-reactid"},
-{"type":"global_var","value":"React"},                                     
-{"type":"script_src_regex","value":"react\\.|react-dom"}
+{"type":"dom_attr_regex","value":"data-reactroot|data-reactid","weight":0.3},
+{"type":"global_var","value":"React","weight":0.4},                                     
+{"type":"script_src_regex","value":"react\\.|react-dom","weight":0.3}
 ],
 "category":"javascript framework"
 },
@@ -24,9 +24,9 @@
 {
 "name": "Angular",
 "checks": [
-{"type":"dom_attr_regex","value":"ng-|ng_"},                           
-{"type":"script_src_regex","value":"angular\\.js|angular-"},                        
-{"type":"global_var","value":"angular"}
+{"type":"dom_attr_regex","value":"ng-|ng_","weight":0.2},                           
+{"type":"script_src_regex","value":"angular\\.js|angular-","weight":0.3},                        
+{"type":"global_var","value":"angular","weight":0.5}
 ],
 "category":"javascript framework"
 },
@@ -35,9 +35,9 @@
 {
 "name": "WordPress",
 "checks": [
-{"type":"meta_generator","value":"WordPress"},                             
-{"type":"script_src_regex","value":"wp-content|wp-includes"},
-{"type":"global_var","value":"wp"}
+{"type":"meta_generator","value":"WordPress","weight":0.3},                             
+{"type":"script_src_regex","value":"wp-content|wp-includes","weight":0.2},
+{"type":"global_var","value":"wp","weight":0.5}
 ],
 "category":"cms"
 },
@@ -46,8 +46,8 @@
 {
 "name": "Google Analytics (gtag.js)",
 "checks": [
-{"type":"script_src_regex","value":"gtag\\.js|analytics\\.js|ga\\.js"},                 
-{"type":"global_var","value":"ga"}
+{"type":"script_src_regex","value":"gtag\\.js|analytics\\.js|ga\\.js","weight":0.5},                 
+{"type":"global_var","value":"ga","weight":0.5}
 ],
 "category":"analytics"
 }

@@ -1,65 +1,106 @@
-(function() {
+(() => {
+  /* ------------------ Helpers ------------------ */
 
-//getting all <script> and maps it to the respective srcs
+  function getScriptSrcs() {
+    return Array.from(document.scripts || [])
+      .map(s => s.src || "")
+      .filter(Boolean);
+  }
 
-function getScriptSrcs() {
-return Array.from(document.scripts || []).map(s => s.src || '').filter(Boolean);
-}
+  function getMetaGenerators() {
+    return Array.from(
+      document.querySelectorAll('meta[name="generator"]')
+    ).map(m => m.content || "");
+  }
 
-//gets meta="generator" tags and maps to their contents
-function getMetaGenerators() {
-return Array.from(document.querySelectorAll('meta[name="generator"]')).map(m => m.content || '');
-}
+  function getHTML() {
+    return document.documentElement
+      ? document.documentElement.outerHTML
+      : "";
+  }
 
-//to get whole freaking html
-function getHTML() {
-return document.documentElement ? document.documentElement.outerHTML : (document.body ? document.body.innerHTML : '');
-}
+  function hasGlobalVar(name) {
+    try {
+      return typeof window[name] !== "undefined";
+    } catch {
+      return false;
+    }
+  }
 
-//checks global variables to get info on frameworks that use global variabless
-function hasGlobalVar(name) {
-try { return !!(window[name]); } catch(e) { return false; }
-}
+  function hasDomAttrRegex(reStr) {
+    try {
+      const re = new RegExp(reStr, "i");
+      return re.test(getHTML());
+    } catch {
+      return false;
+    }
+  }
 
-//regular expression checking on whole html file
-function hasDomAttrRegex(reStr) {
-try {
-const re = new RegExp(reStr, 'i');
-const html = getHTML();
-return re.test(html);
-} catch(e) { return false; }
-}
+  /* ------------------ Core Detection ------------------ */
 
+  function detectTechnology(sig, scriptSrcs, metas) {
+    let score = 0;
+    let matchedChecks = 0;
 
-// Receive signatures via custom event
-window.addEventListener('SiteTechInspect', async (ev) => {
-const signatures = ev.detail && ev.detail.signatures ? ev.detail.signatures : [];
-const results = [];
+    for (const check of sig.checks || []) {
+      let matched = false;
 
+      if (check.type === "script_src_regex") {
+        const re = new RegExp(check.value, "i");
+        matched = scriptSrcs.some(src => re.test(src));
+      }
 
-const scriptSrcs = getScriptSrcs();
-const metas = getMetaGenerators();
+      else if (check.type === "meta_generator") {
+        matched = metas.some(m =>
+          m.toLowerCase().includes(check.value.toLowerCase())
+        );
+      }
 
+      else if (check.type === "global_var") {
+        matched = hasGlobalVar(check.value);
+      }
 
-for (const sig of signatures) {
-let matched = false;
-for (const c of sig.checks || []) {
-if (c.type === 'script_src_regex') {
-const re = new RegExp(c.value, 'i');
-if (scriptSrcs.some(s => re.test(s))) matched = true;
-} else if (c.type === 'meta_generator') {
-if (metas.some(m => m && m.toLowerCase().includes(c.value.toLowerCase()))) matched = true;
-} else if (c.type === 'global_var') {
-if (hasGlobalVar(c.value)) matched = true;
-} else if (c.type === 'dom_attr_regex') {
-if (hasDomAttrRegex(c.value)) matched = true;
-}
-if (matched) break;
-}
-if (matched) results.push({name: sig.name, category: sig.category});
-}
+      else if (check.type === "dom_attr_regex") {
+        matched = hasDomAttrRegex(check.value);
+      }
 
+      if (matched) {
+        matchedChecks++;
+        score += check.weight || 0.25; // default weight
+      }
+    }
 
-window.dispatchEvent(new CustomEvent('SiteTechInspectResult', {detail:{results}}));
-});
+    if (matchedChecks === 0) return null;
+
+    if (score > 1) score = 1;
+
+    return {
+      name: sig.name,
+      category: sig.category,
+      confidence: Math.round(score * 100)
+    };
+  }
+
+  /* ------------------ Event Listener ------------------ */
+
+  window.addEventListener("SiteTechInspect", event => {
+    const signatures = event.detail?.signatures || [];
+
+    const scriptSrcs = getScriptSrcs();
+    const metas = getMetaGenerators();
+
+    const results = [];
+
+    for (const sig of signatures) {
+      const detected = detectTechnology(sig, scriptSrcs, metas);
+      if (detected) results.push(detected);
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("SiteTechInspectResult", {
+        detail: { results }
+      })
+    );
+  });
+
 })();
