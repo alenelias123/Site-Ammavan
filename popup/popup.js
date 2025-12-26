@@ -3,13 +3,19 @@ const status = document.getElementById('status');
 const resultsList = document.getElementById('results');
 const exportBtn = document.getElementById('exportBtn');
 let lastResults = [];
+let isScanning = false;
 
 
 scanBtn.onclick = async () => {
+if (isScanning) {
+status.textContent = 'Scan already in progress...';
+return;
+}
+isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
 
-
+try {
 // fetch signatures from background
 const sigs = await new Promise(resolve => {
 chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatures || []));
@@ -18,7 +24,11 @@ chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatu
 
 // Inject the detector script (content_scripts/detect.js) into the active tab
 const [tab] = await chrome.tabs.query({active:true, currentWindow:true});
-if (!tab || !tab.id) { status.textContent = 'No active tab.'; return; }
+if (!tab || !tab.id) { 
+status.textContent = 'No active tab.'; 
+isScanning = false;
+return; 
+}
 
 
 // inject content script source file
@@ -28,7 +38,42 @@ files: ['content_scripts/detect.js']
 });
 
 
-// send signatures into page via custom event
+// wait for result from page by listening in the extension (we inject a one-time listener)
+// We'll inject a script that listens and then uses chrome.runtime.sendMessage to send to extension
+await chrome.scripting.executeScript({
+target: {tabId: tab.id},
+func: () => {
+const relHandler = (ev) => {
+// send the results to the extension via chrome.runtime.sendMessage
+chrome.runtime.sendMessage({
+type: 'DETECTION_RESULT',
+results: ev.detail.results
+});
+window.removeEventListener('SiteTechInspectResult', relHandler);
+};
+window.addEventListener('SiteTechInspectResult', relHandler);
+}
+});
+
+
+// listen for message from the content script
+let timeoutId;
+const messageListener = (message, sender) => {
+// Validate sender to ensure message comes from the expected tab
+if (message && message.type === 'DETECTION_RESULT' && sender.tab && sender.tab.id === tab.id) {
+lastResults = message.results || [];
+renderResults(lastResults);
+status.textContent = `Found ${lastResults.length} technology(ies)`;
+isScanning = false;
+chrome.runtime.onMessage.removeListener(messageListener);
+if (timeoutId) clearTimeout(timeoutId);
+}
+};
+
+chrome.runtime.onMessage.addListener(messageListener);
+
+
+// send signatures into page via custom event (do this AFTER listeners are set up)
 await chrome.scripting.executeScript({
 target: {tabId: tab.id},
 func: (sigs) => {
@@ -38,36 +83,22 @@ args: [sigs]
 });
 
 
-// wait for result from page by listening in the extension (we inject a one-time listener)
-// We'll inject a script that listens and then uses window.postMessage to send to extension
-await chrome.scripting.executeScript({
-target: {tabId: tab.id},
-func: () => {
-const relHandler = (ev) => {
-// send the results to the extension via window.postMessage
-window.postMessage({source: 'siteTechInspector', results: ev.detail.results}, '*');
-window.removeEventListener('SiteTechInspectResult', relHandler);
-};
-window.addEventListener('SiteTechInspectResult', relHandler);
+// Set a timeout in case the scan never completes
+timeoutId = setTimeout(() => {
+if (isScanning) {
+status.textContent = 'Scan timeout - please try again';
+isScanning = false;
+chrome.runtime.onMessage.removeListener(messageListener);
 }
-});
+}, 10000); // 10 second timeout
 
-
-// listen for message from the page
-function pageMessageHandler(ev) {
-if (ev.source !== window) return; // only same-window
-const data = ev.data;
-if (data && data.source === 'siteTechInspector') {
-lastResults = data.results || [];
-renderResults(lastResults);
-status.textContent = `Found ${lastResults.length} technology(ies)`;
-window.removeEventListener('message', pageMessageHandler);
+} catch (error) {
+console.error('Scan error:', error);
+status.textContent = 'Error during scan - please try again';
+isScanning = false;
+chrome.runtime.onMessage.removeListener(messageListener);
+if (timeoutId) clearTimeout(timeoutId);
 }
-}
-
-
-window.addEventListener('message', pageMessageHandler);
-
 
 };
 

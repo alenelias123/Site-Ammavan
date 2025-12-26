@@ -13,7 +13,7 @@ return Array.from(document.querySelectorAll('meta[name="generator"]')).map(m => 
 
 //to get whole freaking html
 function getHTML() {
-return document.documentElement ? document.documentElement.outerHTML : document.body.innerHTML;
+return document.documentElement ? document.documentElement.outerHTML : (document.body ? document.body.innerHTML : '');
 }
 
 //checks global variables to get info on frameworks that use global variabless
@@ -60,9 +60,6 @@ if (matched) results.push({name: sig.name, category: sig.category});
 }
 
 
-chrome.runtime.sendMessage({
-  type: "DETECTION_RESULT",
-  results
-});
+window.dispatchEvent(new CustomEvent('SiteTechInspectResult', {detail:{results}}));
 });
 })();
