@@ -3,9 +3,15 @@ const status = document.getElementById('status');
 const resultsList = document.getElementById('results');
 const exportBtn = document.getElementById('exportBtn');
 let lastResults = [];
+let isScanning = false;
 
 
 scanBtn.onclick = async () => {
+if (isScanning) {
+status.textContent = 'Scan already in progress...';
+return;
+}
+isScanning = true;
 status.textContent = 'Scanning...';
 resultsList.innerHTML = '';
 
@@ -18,7 +24,11 @@ chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatu
 
 // Inject the detector script (content_scripts/detect.js) into the active tab
 const [tab] = await chrome.tabs.query({active:true, currentWindow:true});
-if (!tab || !tab.id) { status.textContent = 'No active tab.'; return; }
+if (!tab || !tab.id) { 
+status.textContent = 'No active tab.'; 
+isScanning = false;
+return; 
+}
 
 
 // inject content script source file
@@ -52,6 +62,7 @@ if (message && message.type === 'DETECTION_RESULT') {
 lastResults = message.results || [];
 renderResults(lastResults);
 status.textContent = `Found ${lastResults.length} technology(ies)`;
+isScanning = false;
 chrome.runtime.onMessage.removeListener(messageListener);
 }
 };
@@ -67,6 +78,16 @@ window.dispatchEvent(new CustomEvent('SiteTechInspect', {detail:{signatures: sig
 },
 args: [sigs]
 });
+
+
+// Set a timeout in case the scan never completes
+setTimeout(() => {
+if (isScanning) {
+status.textContent = 'Scan timeout - please try again';
+isScanning = false;
+chrome.runtime.onMessage.removeListener(messageListener);
+}
+}, 10000); // 10 second timeout
 
 
 };
