@@ -2,7 +2,13 @@ const SERVER_HEADERS = ["server", "x-powered-by", "x-generator"];
 
 const DEFAULT_INFRA_INFO = {
   server: "Unknown",
-  infrastructure: []
+  infrastructure: [],
+  securityHeaders: {
+    csp: false,
+    xFrameOptions: false,
+    strictTransportSecurity: false,
+    xContentTypeOptions: false
+  }
 };
 
 const INFRA_SIGNATURES = [
@@ -27,6 +33,12 @@ chrome.webRequest.onHeadersReceived.addListener(
     const headers = details.responseHeaders || [];
     let server = null;
     const infra = new Set();
+    const securityHeaders = {
+      csp: false,
+      xFrameOptions: false,
+      strictTransportSecurity: false,
+      xContentTypeOptions: false
+    };
 
     for (const h of headers) {
       const name = h.name.toLowerCase();
@@ -34,6 +46,20 @@ chrome.webRequest.onHeadersReceived.addListener(
 
       if (SERVER_HEADERS.includes(name) && !server) {
         server = value;
+      }
+
+      // Check for security headers
+      if (name === 'content-security-policy') {
+        securityHeaders.csp = true;
+      }
+      if (name === 'x-frame-options') {
+        securityHeaders.xFrameOptions = true;
+      }
+      if (name === 'strict-transport-security') {
+        securityHeaders.strictTransportSecurity = true;
+      }
+      if (name === 'x-content-type-options') {
+        securityHeaders.xContentTypeOptions = true;
       }
 
       // Check both header names and values for infrastructure signatures
@@ -75,9 +101,18 @@ chrome.webRequest.onHeadersReceived.addListener(
     // Merge infrastructure detections (accumulate across requests)
     const mergedInfra = new Set([...existing.infrastructure, ...infra]);
     
+    // Merge security headers (keep true values)
+    const mergedSecurityHeaders = {
+      csp: existing.securityHeaders.csp || securityHeaders.csp,
+      xFrameOptions: existing.securityHeaders.xFrameOptions || securityHeaders.xFrameOptions,
+      strictTransportSecurity: existing.securityHeaders.strictTransportSecurity || securityHeaders.strictTransportSecurity,
+      xContentTypeOptions: existing.securityHeaders.xContentTypeOptions || securityHeaders.xContentTypeOptions
+    };
+    
     tabScanCache[details.tabId] = {
       server: existing.server,
-      infrastructure: Array.from(mergedInfra)
+      infrastructure: Array.from(mergedInfra),
+      securityHeaders: mergedSecurityHeaders
     };
   },
   { urls: ["<all_urls>"] },

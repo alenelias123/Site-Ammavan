@@ -9,7 +9,13 @@ let isScanning = false;
 
 const DEFAULT_INFRA_INFO = {
   server: 'Unknown',
-  infrastructure: []
+  infrastructure: [],
+  securityHeaders: {
+    csp: false,
+    xFrameOptions: false,
+    strictTransportSecurity: false,
+    xContentTypeOptions: false
+  }
 };
 
 
@@ -88,6 +94,12 @@ lastInfraInfo = DEFAULT_INFRA_INFO;
 lastInfraInfo = infraInfo || DEFAULT_INFRA_INFO;
 }
 renderInfrastructure(lastInfraInfo);
+
+// Generate and render Ammavan Verdict and Findings
+const verdict = generateVerdict(lastResults, lastInfraInfo);
+const findings = generateFindings(lastResults, lastInfraInfo);
+renderVerdict(verdict);
+renderFindings(findings);
 });
 
 status.textContent = `Found ${lastResults.length} technology(ies)`;
@@ -185,6 +197,135 @@ function renderInfrastructure(infraInfo) {
   }
 }
 
+// Generate "Ammavan Verdict" - a one-liner judgment
+function generateVerdict(technologies, infraInfo) {
+  const parts = [];
+  
+  // Check for modern frameworks
+  const frameworks = technologies.filter(t => t.category === 'javascript framework');
+  if (frameworks.length > 0) {
+    const frameworkName = frameworks[0].name;
+    parts.push(`Modern ${frameworkName} site`);
+  } else if (technologies.some(t => t.name === 'jQuery')) {
+    parts.push('Old-school jQuery site');
+  } else if (technologies.some(t => t.name === 'WordPress')) {
+    parts.push('WordPress-powered site');
+  } else {
+    parts.push('Simple site');
+  }
+  
+  // Check for CDN/hiding
+  if (infraInfo.infrastructure && infraInfo.infrastructure.includes('Cloudflare')) {
+    parts.push('hiding behind Cloudflare');
+  } else if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+    parts.push(`using ${infraInfo.infrastructure[0]}`);
+  }
+  
+  // Security assessment
+  const secHeaders = infraInfo.securityHeaders || {};
+  const secureCount = Object.values(secHeaders).filter(Boolean).length;
+  
+  if (secureCount >= 3) {
+    parts.push('Well secured');
+  } else if (secureCount >= 1) {
+    parts.push('Decently secured');
+  } else {
+    parts.push('Security needs work');
+  }
+  
+  return parts.join('. ') + '.';
+}
+
+// Generate "Ammavan Findings" - non-obvious discoveries
+function generateFindings(technologies, infraInfo) {
+  const findings = [];
+  
+  // Technology-specific findings
+  technologies.forEach(tech => {
+    if (tech.name === 'React') {
+      findings.push('Site uses React (probably over-engineered for what it does)');
+    } else if (tech.name === 'Angular') {
+      findings.push('Site uses Angular (someone likes TypeScript)');
+    } else if (tech.name === 'Vue') {
+      findings.push('Site uses Vue (good choice, pragmatic devs)');
+    } else if (tech.name === 'WordPress') {
+      findings.push('WordPress detected (along with 43% of the internet)');
+    } else if (tech.name === 'Google Analytics (gtag.js)') {
+      findings.push('Google Analytics present (your data is being collected)');
+    }
+  });
+  
+  // Infrastructure findings
+  if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+    infraInfo.infrastructure.forEach(provider => {
+      if (provider === 'Cloudflare') {
+        findings.push('Hides server using Cloudflare (smart move)');
+      } else if (provider === 'Vercel') {
+        findings.push('Hosted on Vercel (Next.js vibes detected)');
+      } else if (provider === 'Netlify') {
+        findings.push('Hosted on Netlify (JAMstack enthusiast spotted)');
+      } else if (provider === 'AWS') {
+        findings.push('Running on AWS (cloud bills must be fun)');
+      } else if (provider === 'GitHub Pages') {
+        findings.push('Hosted on GitHub Pages (free hosting FTW)');
+      }
+    });
+  }
+  
+  // Security header findings
+  const secHeaders = infraInfo.securityHeaders || {};
+  if (!secHeaders.csp) {
+    findings.push('No CSP header (risky - XSS attacks welcome)');
+  }
+  if (!secHeaders.xFrameOptions) {
+    findings.push('No X-Frame-Options (clickjacking possible)');
+  }
+  if (!secHeaders.strictTransportSecurity) {
+    findings.push('No HSTS header (not forcing HTTPS)');
+  }
+  if (secHeaders.csp && secHeaders.xFrameOptions && secHeaders.strictTransportSecurity) {
+    findings.push('Good security headers present (devs actually care)');
+  }
+  
+  // Server findings
+  if (infraInfo.server && infraInfo.server !== 'Unknown') {
+    if (infraInfo.server.toLowerCase().includes('nginx')) {
+      findings.push('nginx server (popular choice)');
+    } else if (infraInfo.server.toLowerCase().includes('apache')) {
+      findings.push('Apache server (classic)');
+    }
+  }
+  
+  return findings;
+}
+
+// Render verdict
+function renderVerdict(verdict) {
+  const verdictDiv = document.getElementById('verdict');
+  if (verdictDiv) {
+    verdictDiv.textContent = verdict;
+  }
+}
+
+// Render findings
+function renderFindings(findings) {
+  const findingsList = document.getElementById('findings');
+  if (findingsList) {
+    findingsList.innerHTML = '';
+    if (findings.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'Nothing interesting found (boring site)';
+      findingsList.appendChild(li);
+    } else {
+      findings.forEach(finding => {
+        const li = document.createElement('li');
+        li.textContent = '• ' + finding;
+        findingsList.appendChild(li);
+      });
+    }
+  }
+}
+
 
 // Export button handler
 exportBtn.onclick = () => {
@@ -193,9 +334,31 @@ exportBtn.onclick = () => {
     return;
   }
   
+  const verdict = generateVerdict(lastResults, lastInfraInfo || DEFAULT_INFRA_INFO);
+  const findings = generateFindings(lastResults, lastInfraInfo || DEFAULT_INFRA_INFO);
+  
   const exportData = {
+    ammavan_says: "☕ Well well well, look what we have here...",
+    verdict: verdict,
+    findings: findings,
     technologies: lastResults,
-    infrastructure: lastInfraInfo || DEFAULT_INFRA_INFO
+    infrastructure: lastInfraInfo || DEFAULT_INFRA_INFO,
+    gossip_level: findings.length > 5 ? "Maximum" : findings.length > 3 ? "High" : "Moderate",
+    ammavan_rating: {
+      security: lastInfraInfo?.securityHeaders ? 
+        (Object.values(lastInfraInfo.securityHeaders).filter(Boolean).length >= 3 ? "😎 Not bad" : 
+         Object.values(lastInfraInfo.securityHeaders).filter(Boolean).length >= 1 ? "😐 Could be worse" : 
+         "😬 Yikes") : "🤷 Unknown",
+      modernity: lastResults.some(t => ['React', 'Vue', 'Angular'].includes(t.name)) ? 
+        "🚀 Living in 2024" : 
+        lastResults.some(t => t.name === 'jQuery') ? 
+          "🦖 Dinosaur vibes" : 
+          "📜 Keeping it simple",
+      privacy: lastResults.some(t => t.name.includes('Analytics')) ? 
+        "👀 They're watching" : 
+        "🤫 Respectful (for now)"
+    },
+    disclaimer: "This report is brought to you by your friendly neighbourhood Ammavan. Take it with a pinch of salt (and a cup of chai). ☕"
   };
   
   const json = JSON.stringify(exportData, null, 2);
@@ -204,7 +367,7 @@ exportBtn.onclick = () => {
   
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'site-technologies.json';
+  a.download = 'ammavan-gossip-report.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
