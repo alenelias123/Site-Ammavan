@@ -152,18 +152,24 @@ function renderInfrastructure(infraInfo) {
     return;
   }
   
-  // Display server info
+  // Display server info (using textContent to prevent XSS)
   if (infraInfo.server && infraInfo.server !== 'Unknown') {
     const serverLi = document.createElement('li');
-    serverLi.innerHTML = `<strong>Server:</strong> ${infraInfo.server}`;
+    const serverLabel = document.createElement('strong');
+    serverLabel.textContent = 'Server: ';
+    serverLi.appendChild(serverLabel);
+    serverLi.appendChild(document.createTextNode(infraInfo.server));
     infraList.appendChild(serverLi);
   }
   
-  // Display infrastructure platforms
+  // Display infrastructure platforms (using textContent to prevent XSS)
   if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
     infraInfo.infrastructure.forEach(platform => {
       const li = document.createElement('li');
-      li.innerHTML = `<strong>Hosting/CDN:</strong> ${platform}`;
+      const platformLabel = document.createElement('strong');
+      platformLabel.textContent = 'Hosting/CDN: ';
+      li.appendChild(platformLabel);
+      li.appendChild(document.createTextNode(platform));
       infraList.appendChild(li);
     });
   }
