@@ -27,8 +27,14 @@ let timeoutId = null;
 
 try {
 // fetch signatures from background
-const sigs = await new Promise(resolve => {
-chrome.runtime.sendMessage({type: 'getSignatures'}, resp => resolve(resp.signatures || []));
+const sigs = await new Promise((resolve, reject) => {
+chrome.runtime.sendMessage({type: 'getSignatures'}, resp => {
+if (chrome.runtime.lastError) {
+reject(chrome.runtime.lastError);
+} else {
+resolve(resp?.signatures || []);
+}
+});
 });
 
 

@@ -58,8 +58,10 @@ chrome.webRequest.onHeadersReceived.addListener(
       }
     }
 
-    // Get existing cache or create new entry
-    const existing = tabScanCache[details.tabId] || DEFAULT_INFRA_INFO;
+    // Get existing cache or create new entry (use spread to avoid mutating constant)
+    const existing = tabScanCache[details.tabId] 
+      ? tabScanCache[details.tabId] 
+      : { ...DEFAULT_INFRA_INFO };
 
     // Update server if we found one and don't have one yet
     if (server && existing.server === "Unknown") {
