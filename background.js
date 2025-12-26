@@ -47,5 +47,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       server: "Unknown",
       infrastructure: []
     });
+  } else if (msg.type === "getSignatures") {
+    fetch(chrome.runtime.getURL("data/signatures.json"))
+      .then(r => r.json())
+      .then(signatures => sendResponse({ signatures }))
+      .catch(err => {
+        console.error("Failed to load signatures:", err);
+        sendResponse({ signatures: [] });
+      });
+    return true; // Keep channel open for async response
   }
 });
