@@ -60,7 +60,9 @@ if (matched) results.push({name: sig.name, category: sig.category});
 }
 
 
-// Dispatch result event
-window.dispatchEvent(new CustomEvent('SiteTechInspectResult', {detail: {results}}));
+chrome.runtime.sendMessage({
+  type: "DETECTION_RESULT",
+  results
+});
 });
 })();
