@@ -28,16 +28,6 @@ files: ['content_scripts/detect.js']
 });
 
 
-// send signatures into page via custom event
-await chrome.scripting.executeScript({
-target: {tabId: tab.id},
-func: (sigs) => {
-window.dispatchEvent(new CustomEvent('SiteTechInspect', {detail:{signatures: sigs}}));
-},
-args: [sigs]
-});
-
-
 // wait for result from page by listening in the extension (we inject a one-time listener)
 // We'll inject a script that listens and then uses chrome.runtime.sendMessage to send to extension
 await chrome.scripting.executeScript({
@@ -67,6 +57,16 @@ chrome.runtime.onMessage.removeListener(messageListener);
 };
 
 chrome.runtime.onMessage.addListener(messageListener);
+
+
+// send signatures into page via custom event (do this AFTER listeners are set up)
+await chrome.scripting.executeScript({
+target: {tabId: tab.id},
+func: (sigs) => {
+window.dispatchEvent(new CustomEvent('SiteTechInspect', {detail:{signatures: sigs}}));
+},
+args: [sigs]
+});
 
 
 };
