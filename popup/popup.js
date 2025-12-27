@@ -391,7 +391,7 @@ function renderFindings(findings) {
     findingsList.innerHTML = '';
     if (findings.length === 0) {
       const li = document.createElement('li');
-      li.textContent = '😴 Nothing interesting found (boring site, like watching ammachimaar(dried aaah))';
+      li.textContent = '😴 Nothing interesting found (boring site, like watching paint dry)';
       findingsList.appendChild(li);
     } else {
       findings.forEach(finding => {
