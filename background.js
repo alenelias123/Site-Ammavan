@@ -1,5 +1,9 @@
 const SERVER_HEADERS = ["server", "x-powered-by", "x-generator"];
 
+// Confidence scoring weights
+const GENERIC_MATCH_WEIGHT = 1;      // Generic pattern matches (e.g., "cloudflare" in any header)
+const SPECIFIC_HEADER_WEIGHT = 2;    // Platform-specific headers (e.g., x-vercel-id, cf-ray)
+
 const DEFAULT_INFRA_INFO = {
   server: "Unknown",
   infrastructure: [],
@@ -68,26 +72,26 @@ chrome.webRequest.onHeadersReceived.addListener(
       for (const sig of INFRA_SIGNATURES) {
         if (sig.regex.test(value) || sig.regex.test(name)) {
           infra.add(sig.name);
-          infraConfidence[sig.name] = (infraConfidence[sig.name] || 0) + 1;
+          infraConfidence[sig.name] = (infraConfidence[sig.name] || 0) + GENERIC_MATCH_WEIGHT;
         }
       }
       
       // Additional specific header checks for better detection
       if (name.includes('cf-') || name === 'cf-ray') {
         infra.add('Cloudflare');
-        infraConfidence['Cloudflare'] = (infraConfidence['Cloudflare'] || 0) + 2; // Higher weight for specific headers
+        infraConfidence['Cloudflare'] = (infraConfidence['Cloudflare'] || 0) + SPECIFIC_HEADER_WEIGHT;
       }
       if (name.includes('x-vercel-') || name === 'x-vercel-id') {
         infra.add('Vercel');
-        infraConfidence['Vercel'] = (infraConfidence['Vercel'] || 0) + 2;
+        infraConfidence['Vercel'] = (infraConfidence['Vercel'] || 0) + SPECIFIC_HEADER_WEIGHT;
       }
       if (name.includes('x-nf-') || name === 'x-nf-request-id') {
         infra.add('Netlify');
-        infraConfidence['Netlify'] = (infraConfidence['Netlify'] || 0) + 2;
+        infraConfidence['Netlify'] = (infraConfidence['Netlify'] || 0) + SPECIFIC_HEADER_WEIGHT;
       }
       if (name.includes('x-amz-') || name === 'x-amz-cf-id') {
         infra.add('AWS');
-        infraConfidence['AWS'] = (infraConfidence['AWS'] || 0) + 2;
+        infraConfidence['AWS'] = (infraConfidence['AWS'] || 0) + SPECIFIC_HEADER_WEIGHT;
       }
     }
 
