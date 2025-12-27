@@ -352,13 +352,13 @@ function generateFindings(technologies, infraInfo) {
   // Security header findings with proper roasting
   const secHeaders = infraInfo.securityHeaders || {};
   if (!secHeaders.csp) {
-    findings.push('⚠️ No CSP header! XSS attacks-inu open invitation ayittallo!');
+    findings.push('⚠️ No CSP header! XSS attacks-inu open invitation aanallo!');
   }
   if (!secHeaders.xFrameOptions) {
     findings.push('⚠️ No X-Frame-Options! Clickjacking-inu ready aano? (Ready for clickjacking?)');
   }
   if (!secHeaders.strictTransportSecurity) {
-    findings.push('⚠️ No HSTS! HTTP-il vannal enthayalum! (What if someone uses HTTP?)');
+    findings.push('⚠️ No HSTS! HTTP-il vannal enth cheyum machane! (What if someone uses HTTP?)');
   }
   if (secHeaders.csp && secHeaders.xFrameOptions && secHeaders.strictTransportSecurity) {
     findings.push('🛡️ Good security headers present! Finally, someone who studied security!');
