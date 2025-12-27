@@ -23,11 +23,12 @@ Automatically detects common web technologies including:
 - Analytics tools (Google Analytics)
 
 ### Infrastructure Detection ✨ ENHANCED
-Identifies hosting providers and infrastructure services through HTTP header analysis:
+Identifies hosting providers and infrastructure services through HTTP header analysis with confidence percentages:
 - **CDN Providers**: Cloudflare, Akamai, Fastly
 - **Cloud Platforms**: AWS, Google Cloud, Azure
 - **PaaS Providers**: Vercel, Netlify, Heroku
 - **Other Services**: GitHub Pages, Firebase, DigitalOcean
+- **Confidence Scoring**: Each detection now includes a percentage (40-95%) indicating reliability based on number of matching indicators
 
 ### Security Analysis ✨ NEW
 Detects important security headers to assess website security posture:
@@ -77,6 +78,11 @@ Export detected technologies, infrastructure, security analysis, and "Ammavan go
 - Analyzes server headers (`Server`, `X-Powered-By`, `X-Generator`)
 - Detects platform-specific headers (e.g., `cf-ray` for Cloudflare, `x-vercel-id` for Vercel)
 - Accumulates detections across all page requests
+- Tracks confidence scores based on number of matching indicators:
+  - Platform-specific headers (e.g., `x-vercel-id`) contribute more weight (+2)
+  - Generic pattern matches contribute less weight (+1)
+  - Confidence percentages range from 40% (minimal match) to 95% (strong match)
+  - Results sorted by confidence (highest first)
 - Caches results per tab for quick access
 
 ## Architecture
@@ -101,6 +107,7 @@ Export detected technologies, infrastructure, security analysis, and "Ammavan go
 2. **Memory Management**: Automatic cleanup of cached data when tabs are closed
 3. **UI Integration**: Infrastructure results are now properly fetched and displayed
 4. **Header Analysis**: Checks both header names and values for comprehensive detection
+5. **Confidence Scoring**: Each hosting/CDN detection includes a confidence percentage (40-95%) to avoid confusion when multiple providers are detected
 
 ### Enhanced Detection
 - Added support for 12 major hosting providers
