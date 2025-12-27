@@ -10,6 +10,7 @@ let isScanning = false;
 const DEFAULT_INFRA_INFO = {
   server: 'Unknown',
   infrastructure: [],
+  infrastructureWithConfidence: [],
   securityHeaders: {
     csp: false,
     xFrameOptions: false,
@@ -202,8 +203,16 @@ function renderInfrastructure(infraInfo) {
     infraList.appendChild(serverLi);
   }
   
-  // Display infrastructure platforms (using textContent to prevent XSS)
-  if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+  // Display infrastructure platforms with confidence percentages (using textContent to prevent XSS)
+  if (infraInfo.infrastructureWithConfidence && infraInfo.infrastructureWithConfidence.length > 0) {
+    infraInfo.infrastructureWithConfidence.forEach(item => {
+      const li = document.createElement('li');
+      const infraIcon = getInfraIcon(item.name, 'platform');
+      li.textContent = `${infraIcon} Hosting/CDN: ${item.name} (${item.confidence}% confidence)`;
+      infraList.appendChild(li);
+    });
+  } else if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
+    // Fallback for old format without confidence
     infraInfo.infrastructure.forEach(platform => {
       const li = document.createElement('li');
       const infraIcon = getInfraIcon(platform, 'platform');
@@ -222,9 +231,11 @@ function renderInfrastructure(infraInfo) {
     infraList.appendChild(securityLi);
   }
   
-  // If nothing detected
-  if ((!infraInfo.server || infraInfo.server === 'Unknown') && 
-      (!infraInfo.infrastructure || infraInfo.infrastructure.length === 0)) {
+  // If nothing detected (check both infrastructure arrays)
+  const hasInfrastructure = (infraInfo.infrastructureWithConfidence && infraInfo.infrastructureWithConfidence.length > 0) ||
+                            (infraInfo.infrastructure && infraInfo.infrastructure.length > 0);
+  
+  if ((!infraInfo.server || infraInfo.server === 'Unknown') && !hasInfrastructure) {
     const noDetectionLi = document.createElement('li');
     noDetectionLi.textContent = '🤷 No infrastructure detected.';
     infraList.appendChild(noDetectionLi);

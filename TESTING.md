@@ -32,7 +32,9 @@
 - Technologies section should show libraries like jQuery, React, Angular, WordPress, etc.
 - Infrastructure section should show:
   - Server type (e.g., "nginx", "Apache", "cloudflare")
-  - Hosting/CDN platforms detected (e.g., "Cloudflare", "Vercel", "Netlify")
+  - Hosting/CDN platforms detected with confidence percentages (e.g., "Cloudflare (90% confidence)", "Vercel (70% confidence)")
+  - Results are sorted by confidence (highest first)
+  - Confidence percentages range from 40% to 95%
 
 ### Testing Export Functionality
 
