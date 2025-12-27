@@ -265,13 +265,13 @@ function generateVerdict(technologies, infraInfo) {
   if (frameworks.length > 0) {
     const frameworkName = frameworks[0].name;
     if (frameworkName === 'React') {
-      parts.push('Alle, React use cheyyunnu! (Probably showing off at parties)');
+      parts.push('Alleyo makane, React aano use cheyyunne! (Probably showing off at parties)');
     } else if (frameworkName === 'Angular') {
       parts.push('Angular! TypeScript fanboy spotted');
     } else if (frameworkName === 'Vue') {
       parts.push(`${frameworkName} site (pragmatic, like our neighbour Raju)`);
     } else {
-      parts.push(`${frameworkName} framework kandenu (trying to be modern)`);
+      parts.push(`${frameworkName} framework kandu (trying to be modern)`);
     }
   } else if (technologies.some(t => t.name === 'jQuery')) {
     parts.push('Ayyo! jQuery in 2024? Time machine-il ninnu vannathaano?');
@@ -283,15 +283,15 @@ function generateVerdict(technologies, infraInfo) {
   
   // Check for CDN/hiding with sass
   if (infraInfo.infrastructure && infraInfo.infrastructure.includes('Cloudflare')) {
-    parts.push('Cloudflare-inte pinnil okkunja! (Smart, but we still found you)');
+    parts.push('Cloudflare-ine vishwasikall mwonee!! pani kittum! (Smart, but we still found you)');
   } else if (infraInfo.infrastructure && infraInfo.infrastructure.some(i => i.includes('Vercel'))) {
     parts.push('Vercel-il deploy cheythu! Next.js fanboy aanenno?');
   } else if (infraInfo.infrastructure && infraInfo.infrastructure.some(i => i.includes('Netlify'))) {
     parts.push('Netlify use cheyyunnu (JAMstack enthusiast pretending to be cool)');
   } else if (infraInfo.infrastructure && infraInfo.infrastructure.some(i => i.includes('GitHub Pages'))) {
-    parts.push('GitHub Pages-il! Free hosting is best hosting, alle?');
+    parts.push('GitHub Pages-il! Free hosting is best hosting, alle? Vello panik poi 2 cash ondak mwonee!');
   } else if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
-    parts.push(`${infraInfo.infrastructure[0]} kandenu`);
+    parts.push(`${infraInfo.infrastructure[0]} kandu`);
   }
   
   // Security assessment with proper Malayalam uncle style
@@ -299,11 +299,11 @@ function generateVerdict(technologies, infraInfo) {
   const secureCount = Object.values(secHeaders).filter(Boolean).length;
   
   if (secureCount >= 3) {
-    parts.push('Security nannayi und (Finally, someone who cares!)');
+    parts.push('Security nannayitt und (Finally, someone who cares!)');
   } else if (secureCount >= 1) {
     parts.push('Security okke... (Could be worse, could be better)');
   } else {
-    parts.push('Security? Athentha, kaikaryam? (What security? Hackers will have a party!)');
+    parts.push('Security? Athennathada uvve? (What security? Hackers will have a party!)');
   }
   
   return parts.join(' ');
@@ -316,7 +316,7 @@ function generateFindings(technologies, infraInfo) {
   // Technology-specific findings with Mallu ammavan style
   technologies.forEach(tech => {
     if (tech.name === 'React') {
-      findings.push('💰 React kandenu! Probably over-engineered like Sharma uncle\'s house');
+      findings.push('💰 React kandu! Probably over-engineered like Sharma uncle\'s house');
     } else if (tech.name === 'Angular') {
       findings.push('🅰️ Angular use cheyyunnu! TypeScript addict aanenno?');
     } else if (tech.name === 'Vue') {
@@ -326,7 +326,7 @@ function generateFindings(technologies, infraInfo) {
     } else if (tech.name === 'WordPress') {
       findings.push('📝 WordPress! Like 43% of internet. Original alle? (Very original!)');
     } else if (tech.name === 'Google Analytics (gtag.js)' || tech.name.includes('Analytics')) {
-      findings.push('👁️ Google Analytics kandenu! Your data is their business, literally');
+      findings.push('👁️ Google Analytics kandu! Your data is their business, literally');
     }
   });
   
@@ -334,7 +334,7 @@ function generateFindings(technologies, infraInfo) {
   if (infraInfo.infrastructure && infraInfo.infrastructure.length > 0) {
     infraInfo.infrastructure.forEach(provider => {
       if (provider === 'Cloudflare') {
-        findings.push('☁️ Cloudflare-inte pinnil okkunja! (Smart move, but still found you)');
+        findings.push('☁️ Cloudflare-inte pinnil hide cheyunno! (Smart move, but still found you)');
       } else if (provider === 'Vercel') {
         findings.push('▲ Vercel-il host cheyyunnu! Next.js dev spotted in the wild');
       } else if (provider === 'Netlify') {
@@ -391,7 +391,7 @@ function renderFindings(findings) {
     findingsList.innerHTML = '';
     if (findings.length === 0) {
       const li = document.createElement('li');
-      li.textContent = '😴 Nothing interesting found (boring site, like watching paint dry)';
+      li.textContent = '😴 Nothing interesting found (boring site, like watching ammachimaar(dried aaah))';
       findingsList.appendChild(li);
     } else {
       findings.forEach(finding => {
