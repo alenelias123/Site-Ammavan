@@ -231,9 +231,11 @@ function renderInfrastructure(infraInfo) {
     infraList.appendChild(securityLi);
   }
   
-  // If nothing detected
-  if ((!infraInfo.server || infraInfo.server === 'Unknown') && 
-      (!infraInfo.infrastructure || infraInfo.infrastructure.length === 0)) {
+  // If nothing detected (check both infrastructure arrays)
+  const hasInfrastructure = (infraInfo.infrastructureWithConfidence && infraInfo.infrastructureWithConfidence.length > 0) ||
+                            (infraInfo.infrastructure && infraInfo.infrastructure.length > 0);
+  
+  if ((!infraInfo.server || infraInfo.server === 'Unknown') && !hasInfrastructure) {
     const noDetectionLi = document.createElement('li');
     noDetectionLi.textContent = '🤷 No infrastructure detected.';
     infraList.appendChild(noDetectionLi);

@@ -127,6 +127,9 @@ chrome.webRequest.onHeadersReceived.addListener(
     const CONFIDENCE_PER_INDICATOR = 10;
     
     const infrastructureWithConfidence = Array.from(mergedInfra).map(provider => {
+      // Fallback to 1 if no confidence score tracked (should not happen in normal flow,
+      // but ensures minimum confidence for edge cases where provider was added to set
+      // but not tracked in confidence map)
       const rawScore = mergedConfidence[provider] || 1;
       // Calculate percentage based on number of indicators
       const percentage = Math.min(
