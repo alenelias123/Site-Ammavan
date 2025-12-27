@@ -116,11 +116,23 @@ chrome.webRequest.onHeadersReceived.addListener(
     
     // Convert to array with confidence percentages
     // Higher confidence = more headers matched
-    // Max realistic score is around 10 (multiple specific headers found)
+    // Confidence calculation:
+    // - Base: 30% (we found something)
+    // - Per indicator: +10% per matching header/signature
+    // - Min: 40% (at least one indicator required)
+    // - Max: 95% (leave room for uncertainty, even with many indicators)
+    const MIN_CONFIDENCE = 40;
+    const MAX_CONFIDENCE = 95;
+    const BASE_CONFIDENCE = 30;
+    const CONFIDENCE_PER_INDICATOR = 10;
+    
     const infrastructureWithConfidence = Array.from(mergedInfra).map(provider => {
       const rawScore = mergedConfidence[provider] || 1;
-      // Cap percentage at 95% to avoid overconfidence, minimum at 40% for any detection
-      const percentage = Math.min(95, Math.max(40, 30 + (rawScore * 10)));
+      // Calculate percentage based on number of indicators
+      const percentage = Math.min(
+        MAX_CONFIDENCE, 
+        Math.max(MIN_CONFIDENCE, BASE_CONFIDENCE + (rawScore * CONFIDENCE_PER_INDICATOR))
+      );
       return {
         name: provider,
         confidence: Math.round(percentage)
