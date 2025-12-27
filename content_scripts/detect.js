@@ -31,7 +31,7 @@
     }
   }
 
-  // IMPORTANT: only scan real DOM attributes
+  // IMPORTANT: only scan real DOM attributes (to avoid false angular chances)
   function hasDomAttrRegex(reStr) {
     try {
       const re = new RegExp(reStr, "i");
