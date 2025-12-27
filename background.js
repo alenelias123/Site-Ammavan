@@ -3,6 +3,7 @@ const SERVER_HEADERS = ["server", "x-powered-by", "x-generator"];
 const DEFAULT_INFRA_INFO = {
   server: "Unknown",
   infrastructure: [],
+  infrastructureWithConfidence: [],
   securityHeaders: {
     csp: false,
     xFrameOptions: false,
@@ -33,6 +34,7 @@ chrome.webRequest.onHeadersReceived.addListener(
     const headers = details.responseHeaders || [];
     let server = null;
     const infra = new Set();
+    const infraConfidence = {}; // Track confidence scores
     const securityHeaders = {
       csp: false,
       xFrameOptions: false,
@@ -66,21 +68,26 @@ chrome.webRequest.onHeadersReceived.addListener(
       for (const sig of INFRA_SIGNATURES) {
         if (sig.regex.test(value) || sig.regex.test(name)) {
           infra.add(sig.name);
+          infraConfidence[sig.name] = (infraConfidence[sig.name] || 0) + 1;
         }
       }
       
       // Additional specific header checks for better detection
       if (name.includes('cf-') || name === 'cf-ray') {
         infra.add('Cloudflare');
+        infraConfidence['Cloudflare'] = (infraConfidence['Cloudflare'] || 0) + 2; // Higher weight for specific headers
       }
       if (name.includes('x-vercel-') || name === 'x-vercel-id') {
         infra.add('Vercel');
+        infraConfidence['Vercel'] = (infraConfidence['Vercel'] || 0) + 2;
       }
       if (name.includes('x-nf-') || name === 'x-nf-request-id') {
         infra.add('Netlify');
+        infraConfidence['Netlify'] = (infraConfidence['Netlify'] || 0) + 2;
       }
       if (name.includes('x-amz-') || name === 'x-amz-cf-id') {
         infra.add('AWS');
+        infraConfidence['AWS'] = (infraConfidence['AWS'] || 0) + 2;
       }
     }
 
@@ -101,6 +108,25 @@ chrome.webRequest.onHeadersReceived.addListener(
     // Merge infrastructure detections (accumulate across requests)
     const mergedInfra = new Set([...existing.infrastructure, ...infra]);
     
+    // Merge confidence scores (accumulate scores)
+    const mergedConfidence = { ...(existing.infraConfidence || {}) };
+    for (const [provider, score] of Object.entries(infraConfidence)) {
+      mergedConfidence[provider] = (mergedConfidence[provider] || 0) + score;
+    }
+    
+    // Convert to array with confidence percentages
+    // Higher confidence = more headers matched
+    // Max realistic score is around 10 (multiple specific headers found)
+    const infrastructureWithConfidence = Array.from(mergedInfra).map(provider => {
+      const rawScore = mergedConfidence[provider] || 1;
+      // Cap percentage at 95% to avoid overconfidence, minimum at 40% for any detection
+      const percentage = Math.min(95, Math.max(40, 30 + (rawScore * 10)));
+      return {
+        name: provider,
+        confidence: Math.round(percentage)
+      };
+    }).sort((a, b) => b.confidence - a.confidence); // Sort by confidence descending
+    
     // Merge security headers (keep true values)
     const mergedSecurityHeaders = {
       csp: existing.securityHeaders.csp || securityHeaders.csp,
@@ -112,6 +138,8 @@ chrome.webRequest.onHeadersReceived.addListener(
     tabScanCache[details.tabId] = {
       server: existing.server,
       infrastructure: Array.from(mergedInfra),
+      infrastructureWithConfidence: infrastructureWithConfidence,
+      infraConfidence: mergedConfidence,
       securityHeaders: mergedSecurityHeaders
     };
   },
