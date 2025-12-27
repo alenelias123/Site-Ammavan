@@ -269,7 +269,7 @@ function generateVerdict(technologies, infraInfo) {
     } else if (frameworkName === 'Angular') {
       parts.push('Angular! TypeScript fanboy spotted');
     } else if (frameworkName === 'Vue') {
-      parts.push(`${frameworkName} site (pragmatic, like our neighbour Raju)');
+      parts.push(`${frameworkName} site (pragmatic, like our neighbour Raju)`);
     } else {
       parts.push(`${frameworkName} framework kandenu (trying to be modern)`);
     }
