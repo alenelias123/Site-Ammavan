@@ -4,11 +4,11 @@ A Chrome extension that detects technologies, frameworks, and infrastructure use
 
 ## Features
 
-### Ammavan Verdict ✨ NEW
+### Ammavan Verdict 
 Get a witty, one-line judgment about the website you're scanning. The neighbourhood Ammavan always has an opinion!
 - **Examples**: "Modern React site hiding behind Cloudflare. Decently secured." or "Old-school jQuery site. Security needs work."
 
-### Ammavan Findings ✨ NEW
+### Ammavan Findings 
 Discover non-obvious insights about the site's technology and security:
 - Technology observations (e.g., "Site uses React (probably over-engineered for what it does)")
 - Security findings (e.g., "No CSP header (risky - XSS attacks welcome)")
@@ -22,7 +22,7 @@ Automatically detects common web technologies including:
 - Content Management Systems (WordPress)
 - Analytics tools (Google Analytics)
 
-### Infrastructure Detection ✨ ENHANCED
+### Infrastructure Detection
 Identifies hosting providers and infrastructure services through HTTP header analysis with confidence percentages:
 - **CDN Providers**: Cloudflare, Akamai, Fastly
 - **Cloud Platforms**: AWS, Google Cloud, Azure
@@ -30,7 +30,7 @@ Identifies hosting providers and infrastructure services through HTTP header ana
 - **Other Services**: GitHub Pages, Firebase, DigitalOcean
 - **Confidence Scoring**: Each detection now includes a percentage (40-95%) indicating reliability based on number of matching indicators
 
-### Security Analysis ✨ NEW
+### Security Analysis 
 Detects important security headers to assess website security posture:
 - **Content Security Policy (CSP)**: Protection against XSS attacks
 - **X-Frame-Options**: Clickjacking protection
@@ -198,6 +198,3 @@ Contributions are welcome! Please feel free to submit pull requests with:
 - Bug fixes
 - UI improvements
 
-## Credits
-
-Developed with ❤️ for the web development community.
