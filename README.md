@@ -51,7 +51,7 @@ Export detected technologies, infrastructure, security analysis, and "Ammavan go
 6. The extension icon will appear in your toolbar
 
 ### For Users
-*(Extension will be published to Chrome Web Store)*
+*(Extension will be published to Chrome Web Store (maybe idk))*
 
 ## Usage
 
